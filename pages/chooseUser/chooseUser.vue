@@ -1,12 +1,15 @@
 <template>
 	<view>
-		<xiaolu-tree  :checkList="checkList"  v-if="tree.length>0"  :options="prop" @sendValue="confirm"  :isCheck="true" :treeNone="tree"></xiaolu-tree>
+		<xiaolu-tree :checkList="checkList" v-if="tree.length>0" :options="prop" @sendValue="confirm" :isCheck="true"
+			:treeNone="tree"></xiaolu-tree>
 	</view>
 </template>
 
 <script>
 	import XiaoluTree from '@/components/xiaolu-tree/tree.vue';
-	import {treeNode} from './data.js'
+	import {
+		treeNode
+	} from './data.js'
 
 	export default {
 		components: {
@@ -17,35 +20,57 @@
 				tree: [],
 				checkList: [],
 				backList: this.checkList,
-				prop:{},
-				max: 5,	
+				prop: {},
+				max: 5,
 			}
 		},
-		 onLoad(option) {
-			 let { prop,arr } = option
-			 // #ifdef H5
+		onLoad(option) {
+			let {
+				prop,
+				arr
+			} = option
+			// #ifdef H5
 			let checkList = JSON.parse(decodeURIComponent(arr));
 			// #endif
 			// #ifdef MP-QQ||MP-WEIXIN||APP-NVUE||APP-PLUS
 			let checkList = JSON.parse(arr);
 			// #endif
 			this.prop = JSON.parse(prop)
+			console.log(checkList)
 			this.checkList = checkList;
-			this.tree=treeNode;//树形数据赋值
+			// this.setCheck(treeNode)
+			this.tree = treeNode; //树形数据赋值
 		},
 		methods: {
+			setCheck(treeNode) {
+				let newList = []
+				const getData = (tree) => {
+					tree.forEach(v => {
+						if(v.user){
+							newList.push({...v})
+						}
+						if (v.children && v.children.length > 0) {
+							getData(v.children)
+						}
+					})
+				}
+				getData(treeNode)
+				this.checkList = newList
+			},
 			//获取选中的值
-			confirm(val,back) {
-				if(back){
+			confirm(val, back) {
+				if (back) {
 					this.backConfirm(val)
 					return
 				}
 				this.backList = val;
 			},
-			
+
 			// 返回上一页传参
-			 backConfirm(val) {
-				uni.$emit('selectSuccess',{list:val})
+			backConfirm(val) {
+				uni.$emit('selectSuccess', {
+					list: val
+				})
 				uni.navigateBack();
 			}
 		}
@@ -71,5 +96,4 @@
 			color: #fff;
 		}
 	}
-	
 </style>

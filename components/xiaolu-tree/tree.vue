@@ -24,34 +24,36 @@
 			</view>
 		</view>
 		<view>
-			<view class="container-list">
-				<view class="common" v-for="(item, index) in tree" @click="handleClick(item,index)" :key="index">
-					<label class="content">
-						<view class="list-item" v-show="isCheck">
-							<!-- 多选 -->
-							<view class="checkbox" v-if="props.options.multiple" @click.stop="handleClick(item,-1)">
-								<span v-if="isSelect(item)">
-									<i v-if="item.bx&&newCheckList.length!=0"
-										class="iconfont icon-banxuanzhongshousuo1-shi icons" />
-									<i v-else class="iconfont icon-xuanzhong txt icon-selected" />
-								</span>
-								<i v-else-if="item.qx" class="iconfont icon-xuanzhong txt icon-selected" />
-								<i v-else-if="item.bx" class="iconfont icon-banxuanzhongshousuo1-shi icons" />
-								<i style="color: #b8b8b8;" v-else class="iconfont icon-weixuanzhong txt" />
+			<scroll-view scroll-y :style="{ height:scrollHeight }">
+				<view class="container-list">
+					<view class="common" v-for="(item, index) in tree" @click="handleClick(item,index)" :key="index">
+						<label class="content">
+							<view class="list-item" v-show="isCheck">
+								<!-- 多选 -->
+								<view class="checkbox" v-if="props.options.multiple" @click.stop="handleClick(item,-1)">
+									<span v-if="isSelect(item)">
+										<i v-if="item.bx&&newCheckList.length!=0"
+											class="iconfont icon-banxuanzhongshousuo1-shi icons" />
+										<i v-else class="iconfont icon-xuanzhong txt icon-selected" />
+									</span>
+									<i v-else-if="item.qx" class="iconfont icon-xuanzhong txt icon-selected" />
+									<i v-else-if="item.bx" class="iconfont  icons" />
+									<i style="color: #b8b8b8;" v-else class="iconfont icon-weixuanzhong txt" />
+								</view>
+								<!-- 单选 -->
+								<view class="checkbox" v-else-if="(props.options.nodes?item.user?true:false:true)"
+									@click.stop="handleClick(item,-1)">
+									<i v-if="radioSelect(item)" class="txt iconfont icon-selected" />
+									<i style="color: #b8b8b8;" v-else class="txt iconfont icon-weixuanzhong1" />
+								</view>
 							</view>
-							<!-- 单选 -->
-							<view class="checkbox" v-else-if="(props.options.nodes?item.user?true:false:true)"
-								@click.stop="handleClick(item,-1)">
-								<i v-if="radioSelect(item)" class="txt iconfont icon-selected" />
-								<i style="color: #b8b8b8;" v-else class="txt iconfont icon-weixuanzhong1" />
-							</view>
-						</view>
-						<view class="lable-text">{{item[props.options.label]}}</view>
-						<view class="right"><i v-if="!item.user&&item.children.length>0"
-								class="iconfont icon-z043 iconclass"></i></view>
-					</label>
+							<view class="lable-text">{{item[props.options.label]}}</view>
+							<view class="right"><i v-if="!item.user&&item.children.length>0"
+									class="iconfont icon-z043 iconclass"></i></view>
+						</label>
+					</view>
 				</view>
-			</view>
+			</scroll-view>
 		</view>
 		<view class="btn box_sizing">
 			<button class="sureBtn" type="primary" @click="backConfirm">确认</button>
@@ -66,7 +68,8 @@
 		reactive,
 		defineProps,
 		computed,
-		nextTick,defineEmits
+		nextTick,
+		defineEmits
 	} from 'vue'
 	const props = defineProps({
 		treeNone: {
@@ -85,19 +88,15 @@
 			type: String,
 			default: 'id'
 		},
+		scrollHeight: {
+			type: String,
+			default: 'id'
+		},
 		searchIf: {
 			type: Boolean,
 			default: true
 		},
 		isCheck: true,
-		checkList: {
-			type: Array,
-			default: () => []
-		},
-		parentList: {
-			type: Array,
-			default: () => []
-		},
 		options: {
 			type: Object,
 			default: () => {
@@ -110,7 +109,7 @@
 			}
 		}
 	})
-	
+	console.log(props.checkList)
 	const catchTreeNone = JSON.parse(JSON.stringify(props.treeNone)),
 		tree = ref(props.treeNone),
 		newCheckList = ref(props.checkList),
@@ -138,7 +137,6 @@
 				tree.value = tree_stack.value[tree_stack.value.length - 1].children;
 			}
 		}
-		console.log(props.options)
 	}
 	initComponent()
 	// (tree为目标树，targetId为目标节点id)
@@ -175,10 +173,9 @@
 				props.options.checkStrictly ? (item.bx = 0, item.qx = 0) : ''
 				return false
 			}
-			const i = checkList.findIndex(e => {
-				return item[props.keyValue] == e[props.keyValue]
-			}) > -1
-			return i && !item.qx
+
+			const select = checkList.some(e => item[props.keyValue] == e[props.keyValue]);
+			return select && !item.qx
 		}
 	})
 	//到下一级
@@ -356,6 +353,7 @@
 		})
 		setTimeout(() => {
 			tree.value = searchResult.value
+			if (props.options.checkStrictly) checkAllChoose();
 			uni.hideLoading()
 		}, 300)
 	}
@@ -398,7 +396,7 @@
 	}
 
 	function backConfirm() {
-		emit('sendValue',newCheckList.value,'back')
+		emit('sendValue', newCheckList.value, 'back')
 	}
 	const handleClick = (item, index) => {
 		let children = item[props.options.children]

@@ -55,6 +55,9 @@ export default {
 		},
 		methods: {
 			toChoose(prop){
+				this.selectListItem = this.selectListItem.map(v=>{
+					return {id:v.id}
+				})
 				// #ifdef H5
 					let items = encodeURIComponent(JSON.stringify(this.selectListItem));
 				// #endif
